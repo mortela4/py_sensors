@@ -103,7 +103,7 @@ class Sensors:
             pass
         else:
             print("ERROR: invalid sensor JSON input!")
-            return
+            return False
         #
         sensor_type = sensor_spec['sensor_type']
         #
@@ -117,7 +117,7 @@ class Sensors:
             pass
         else:
             print("ERROR: invalid device-specific JSON input!")
-            return
+            return False
         # Create sensor ...
         try:
             sensor = self.build_sensor(sensor_clsname=sensor_class_type,
@@ -128,10 +128,14 @@ class Sensors:
             if validator(sensor):
                 self.sensors.append(sensor)
             else:
+                # TODO: qualify use of 'raise' here!
                 raise Exception("Parameter ERROR: cannot add sensor to sensor-list!")
         except Exception as exc:
             print("ERROR creating sensor!!")
             print(exc.args)
+            return False
+        #
+        return True
 
     def list_sensors(self):
         if len(self.sensors) == 0:
@@ -145,10 +149,12 @@ class Sensors:
             sensor.get_info()
 
     def read_sensors(self):
+        sensor_data = []
         print("Registered sensors:")
         print("===================")
         for idx, sensor in enumerate(self.sensors):
             val = sensor.base.read()
+            sensor_data.append(val)
             if type(val) is not float:
                 # Check if list or complex value:
                 if type(val) is list:
@@ -169,6 +175,8 @@ class Sensors:
                         print("ERROR: cannot parse sensor readout result!")
             else:
                 print("Sensor no.%d: %s (type=%s) value = %s" % (idx, sensor.base.alias, sensor.base.dev_name, val))
+        #
+        return sensor_data
 
     def get_sensor_data(self):
         """ Generator version of 'read_sensors()' which may be more usable. """
@@ -217,6 +225,7 @@ class Sensors:
 
 
 # *********** TEST ******************
+
 if __name__ == "__main__":
     sensors = Sensors()
     sensors.list_sensors()
