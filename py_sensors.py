@@ -25,7 +25,7 @@ import json
 from sensor_properties import sensor_props
 from sensor_types.sensor_base import ExternalSensorBase, InternalSensorBase
 from sensor_types.sensor_devices import I2cSensor, SpiSensor, UartSensor, sensor_type_map
-from sensor_utils.json_utils import JsonValidator
+from sensor_utils.json_utils import JsonValidator, check_for_unknown_properties
 from sensor_utils.sensor_builder import SensorBuilder
 
 
@@ -120,6 +120,10 @@ class Sensors:
             return False
         # Create sensor ...
         try:
+            if check_for_unknown_properties([sensor_props.sensor_base_schema, json_dev_spec_schema], json_spec):
+                print("Found unknown property!")
+                raise Exception
+            #
             sensor = self.build_sensor(sensor_clsname=sensor_class_type,
                                        base_clsname=ExternalSensorBase,
                                        props=sensor_spec)
@@ -223,9 +227,26 @@ class Sensors:
                     break
         return sensor_found
 
+    def get_sensor_by_uuid(self, s_uuid=None):
+        """
+        Find sensor by UUID - which SHOULD be unique.
+        This is NOT the case with attribute 'dev_name'.
+        TODO: infer checks for UUID uniqueness! (on input also(?))
+        TODO: make more pythonic search ...
+        """
+        sensor_found = None
+        if s_uuid is None:
+            # TODO: rather throw ArgumentException error ... (no?)
+            print("ERROR: no sensor name specified!")
+        else:
+            for sensor in self.sensors:
+                if s_uuid == sensor.base.uuid:
+                    sensor_found = sensor
+                    break
+        return sensor_found
+
 
 # *********** TEST ******************
-
 if __name__ == "__main__":
     sensors = Sensors()
     sensors.list_sensors()
@@ -288,6 +309,8 @@ if __name__ == "__main__":
     sensors.add_sensor("""{"sensor_type": "i2c", "i2c_addr": 77, "clk_speed": 100000, "dev_name": "BM281","alias": "sensor2E"}""")
     # Fails devspec-schema test:
     sensors.add_sensor("""{"sensor_type": "i2c", "bus_no": 2, "clk_speed": 100000, "dev_name": "BM281", "alias": "sensor2F"}""")
+    # Fails check for 'unkown property':
+    sensors.add_sensor("""{"sensor_type": "i2c", "bus_no": 2, "i2c_addr": 79, "clock_speed": 100000, "dev_name": "BM281", "alias": "sensor2F"}""")
 
 
 

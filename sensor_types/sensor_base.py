@@ -1,5 +1,7 @@
-# ***************************** Sensor BASE-classes ********************************
+import uuid
 
+
+# ***************************** Sensor BASE-classes ********************************
 
 class ExternalSensorBase:
     """
@@ -9,6 +11,7 @@ class ExternalSensorBase:
 
     def __init__(self, type_name=None, bus_no=None, dev_name=None, alias=None, config=None, read=None):
         #
+        self.uuid = uuid.uuid4()     # TODO: assess - should UUID creation happen first when a new sensor is accepted?
         self.config = config
         self.read = read
         self.type_name = type_name
@@ -36,6 +39,7 @@ class ExternalSensorBase:
         print("%s-interface no: %d" % (bus_type_name, self.bus_no))
         print("%s connected device: %s" % (bus_type_name, self.dev_name))
         print("%s sensor alias: %s" % (bus_type_name, self.alias))
+        print("%s sensor UUID: %s" % (bus_type_name, self.uuid))
         print("Bus-specific properties:")
 
 
@@ -44,6 +48,7 @@ class InternalSensorBase:
     Base sensor class no.2 (MCU/SoC-internal sensors)
     """
     def __init__(self, type_name=None, dev_no=None, dev_addr=None, dev_name=None, use_irq=False, alias=None, read=None):
+        self.uuid = uuid.uuid4()
         self.read = read
         # TODO: throw error if =None or negative (and possibly above some limit)!
         self.type_name = type_name
