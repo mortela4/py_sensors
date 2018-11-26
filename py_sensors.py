@@ -25,7 +25,7 @@ import json
 from sensor_properties import sensor_props
 from sensor_types.sensor_base import ExternalSensorBase, InternalSensorBase
 from sensor_types.sensor_devices import I2cSensor, SpiSensor, UartSensor, sensor_type_map
-from sensor_utils.json_utils import JsonValidator, check_for_unknown_properties
+from sensor_utils.json_utils import JsonValidator, property_not_in_schema
 from sensor_utils.sensor_builder import SensorBuilder
 
 
@@ -120,8 +120,8 @@ class Sensors:
             return False
         # Create sensor ...
         try:
-            if check_for_unknown_properties([sensor_props.sensor_base_schema, json_dev_spec_schema], json_spec):
-                print("Found unknown property!")
+            if property_not_in_schema([sensor_props.sensor_base_schema, json_dev_spec_schema], json_spec):
+                print("Found unknown (= 'not-in-schema') property!")
                 raise Exception
             #
             sensor = self.build_sensor(sensor_clsname=sensor_class_type,

@@ -4,17 +4,36 @@ from jsonschema import Draft4Validator, exceptions
 
 # ******************* JSON-validation ************************
 
-def check_for_unknown_properties(schemas=[], json_input=None):
-    found = False
-    for schema in schemas:
-        props = schema["properties"]
-        # print("\nTest for base properties - with valid params for both base and dev ...")
-        for prop in props:
-            print("Checking for property: %s" % prop)
-            if prop in json_input:
-                found = True        # verbose - but make a point ...
+def property_not_in_schema(schemas=[], json_input=None, debug=False):
+    def debug_print(msg):
+        if debug:
+            print(msg)
+    #
+    debug_print("Checking over %d schemas ..." % len(schemas))
+    debug_print("============================")
+    sensor_keys = json.loads(json_input)
+    debug_print("INPUT: %s" % sensor_keys)
+    #
+    for schema_no, schema in enumerate(schemas):
+        props = dict(schema["properties"])
+        if schema_no == 0:
+            debug_print("Checking BASE schema ...")
+        else:
+            debug_print("Checking DEV schema ...")
+        print("Properties: ", str(props))
         #
-        return found
+        for prop in sensor_keys:
+            debug_print("Checking for property: %s" % prop)
+            if prop in props:
+                debug_print("Found property %s in schema." % prop)
+                return False
+            else:
+                if schema_no == 0:
+                    debug_print("WARN: property %s NOT found in BASE schema :-/" % prop)
+                else:
+                    debug_print("ERR: property %s NOT found in DEV schema either!!" % prop)
+        #
+    return True
 
 
 class JsonValidator:
